@@ -14,6 +14,9 @@ import Snackbar from '@material-ui/core/Snackbar';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Avatar from '@material-ui/core/Avatar';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import { blue } from '@material-ui/core/colors';
+import CssBaseline from '@material-ui/core/CssBaseline';
 
 import { authenticated } from './auth';
 import HttpRequest from './HTTPRequests';
@@ -23,7 +26,7 @@ const useStyles = makeStyles(theme => ({
 		maxWidth: 345,
 	},
 	media: {
-    height: 140,
+		height: 140,
   },
   root: {
     flexGrow: 1,
@@ -49,6 +52,22 @@ const useStyles = makeStyles(theme => ({
   userImage:{
   	position: 'relative',
   	marginRight: '1%',
+  },
+  buttonProgress: {
+    color: blue[500],
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    marginTop: -12,
+    marginLeft: -12,
+  },
+  progressRoot: {
+    display: 'flex',
+    alignItems: 'center'
+  },
+  wrapper: {
+    margin: theme.spacing(1),
+    position: 'relative',
   }
 }));
 
@@ -69,6 +88,24 @@ export default function Recipes(){
 
 	const [recipes, setRecipesState] = useState([]);
 
+	const [loading, setLoading] = useState(false);
+
+	const [myRecsLoading, setMyRecsLoading] = useState(false);
+
+	const handleButtonClick = () => { 
+
+		if(!loading){
+
+			setLoading(true);
+
+			let time = setTimeout(() => {
+
+					setLoading(false);
+
+			},2000);
+		}
+	};
+
   const handleClose = () => {
       setsnackbarState({ ...snackbarState, open: false });
   };
@@ -78,6 +115,8 @@ export default function Recipes(){
   	HttpRequest
 			.APIGetRequest('recipe', userInfo.token)
 			.then((response) =>	{
+
+				setLoading(false);
 
 				if(response.ok){
 
@@ -103,6 +142,8 @@ export default function Recipes(){
 			})
 			.catch((error) => {
 
+				setLoading(false);
+
 				let message = 'Exception fetching recipes from server [Error]' + error;
 
 				setsnackbarState({ ...snackbarState, open: true, message : message });
@@ -120,7 +161,12 @@ export default function Recipes(){
 
 		e.preventDefault();
 
-		loadMyRecipes();
+		if(!myRecsLoading){
+
+			setMyRecsLoading(true);
+
+			loadMyRecipes();	
+		}
 
 	};
 
@@ -128,7 +174,13 @@ export default function Recipes(){
 
 		e.preventDefault();
 
-		loadAllRecipes();
+		if(!loading){
+
+			setLoading(true);
+
+			loadAllRecipes();
+
+		}
 
 	};
 
@@ -137,6 +189,8 @@ export default function Recipes(){
 		HttpRequest
 			.APIGetRequest(`recipe?user=${userInfo.id}`, userInfo.token)
 			.then((response) =>	{
+
+				setMyRecsLoading(false);
 
 				if(response.ok){
 
@@ -162,6 +216,8 @@ export default function Recipes(){
 			})
 			.catch((error) => {
 
+				setMyRecsLoading(false);
+
 				let message = 'Exception fetching USER recipes from server [Error]' + error;
 
 				setsnackbarState({ ...snackbarState, open: true, message : message });
@@ -173,6 +229,8 @@ export default function Recipes(){
 
 		<React.Fragment>
 
+			<CssBaseline />
+
 				<header className={classes.headerRoot}>
 
 				  <AppBar position="static" className="general-color" boxshadow={3}>
@@ -180,9 +238,31 @@ export default function Recipes(){
 					    <Typography variant="h6" className={classes.title}>
 					      Food Recipes
 					    </Typography>
-					     		
-				     	<Button color="inherit" onClick={handleLoadAll}>Recipes</Button>
-				     	<Button color="inherit" onClick={handleLoadMy}>My Recipes</Button>
+
+						 	<div className={classes.progressRoot}>
+
+					      <div className={classes.wrapper}>
+
+					      	<Button color="inherit" onClick={handleLoadAll}>Recipes</Button>
+
+					        { loading && <CircularProgress size={24} className={classes.buttonProgress} /> }
+
+					      </div>
+
+				    	</div>
+
+				    	<div className={classes.progressRoot}>
+
+					      <div className={classes.wrapper}>
+
+					      	<Button color="inherit" onClick={handleLoadMy}>My Recipes</Button>
+					      	
+					        { myRecsLoading && <CircularProgress size={24} className={classes.buttonProgress} /> }
+
+					      </div>
+
+				    	</div>
+
 				     	<Button color="inherit">Create a Recipe</Button>
 
 		          <Typography variant="h6" noWrap className={classes.userName}>
