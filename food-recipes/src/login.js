@@ -1,11 +1,12 @@
 import HttpRequest from './HTTPRequests';
-import { saveAuth, authenticated } from './auth';
+import { saveAuth } from './auth';
 
-import React, { useState } from 'react'
-import { Redirect, useHistory } from 'react-router-dom';
+import React, { useState, useRef } from 'react'
+import { useHistory } from 'react-router-dom';
 
+import AppBar from '@material-ui/core/AppBar';
+import Toolbar from '@material-ui/core/Toolbar';
 import { makeStyles } from '@material-ui/core/styles';
-import { shadows } from '@material-ui/system';
 import Snackbar from '@material-ui/core/Snackbar';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Container from '@material-ui/core/Container';
@@ -14,10 +15,7 @@ import AccountCircle from '@material-ui/icons/AccountCircle';
 import Visibility from '@material-ui/icons/Visibility';
 import VisibilityOff from '@material-ui/icons/VisibilityOff';
 import TextField from '@material-ui/core/TextField';
-import InputAdornment from '@material-ui/core/InputAdornment';
-import InputLabel from '@material-ui/core/InputLabel';
 import IconButton from '@material-ui/core/IconButton';
-import Input from '@material-ui/core/Input';
 import Grid from '@material-ui/core/Grid';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import { green, blue } from '@material-ui/core/colors';
@@ -28,7 +26,12 @@ import clsx from 'clsx';
 import './css/general.css';
 
 const useStyles = makeStyles(theme => ({
-
+  headerRoot: {
+    flexGrow: 1,
+  },
+  title: {
+    flexGrow: 1,
+  },
   margin: {
     marginRight: theme.spacing(1),
     marginTop: theme.spacing(1),
@@ -74,6 +77,8 @@ export default function Login(){
 
 	const classes = useStyles();
 
+	const snackRef = useRef(null);
+
   const[login, setLoginInformations] = useState({ email : '', password : '' });
 
   const [snackbarState, setsnackbarState] = useState({
@@ -87,12 +92,9 @@ export default function Login(){
 	const [success, setSuccess] = useState(false);
 
 	const buttonClassname = clsx({
-  	[classes.buttonSuccess]: success
+  	[classes.buttonSuccess]: success,
+  	'general-color' : true
 	});
-
-  if(authenticated()){
-      history.push("/recipes");
-  }
 
   const handleChange = prop => event => {
     setLoginInformations({ ...login, [prop]: event.target.value });
@@ -117,13 +119,54 @@ export default function Login(){
       setSuccess(false);
       setLoading(true);
 
+      setsnackbarState({ ...snackbarState, open: false });
 
-      // Logiinnnnnn
-      setTimeout(() => {
-        setSuccess(true);
-        setLoading(false);
-      }, 2000);
+     HttpRequest.loginAuth({ 
+            username : login.email, 
+            password : login.password 
+        })
+	    .then((response) => {
 
+	        setLoading(false);
+
+	        if (!response.ok) {
+
+	            let message = 'Login error! Invalid credentials sent';
+
+	            setsnackbarState({ ...snackbarState, open: true, message : message });
+
+	            return null;
+	        }
+
+	        return response.json();
+
+	    })
+	    .then((myUser) => {
+	       
+	        if(myUser){
+
+							setSuccess(true);
+
+	            saveAuth(myUser);
+
+	            history.push("/recipes");
+
+	        }else{
+
+	            let message = 'Login error! Invalid credentials sent';
+
+	            setsnackbarState({ ...snackbarState, open: true, message : message });
+	        }
+	    })
+	    .catch((error) => {
+	        
+	        setLoading(false);
+
+	        let message = 'There has been a problem when connecting to server: ' + error;
+
+	        setsnackbarState({ ...snackbarState, open: true, message : message });
+
+	    });
     }
   };
 
@@ -134,6 +177,16 @@ export default function Login(){
 
       <CssBaseline />
       
+      <header className={classes.headerRoot}>
+			  <AppBar position="static" className="general-color" boxshadow={3}>
+				  <Toolbar>
+				    <Typography variant="h6" className={classes.title}>
+				      Food Recipes
+				    </Typography>
+				  </Toolbar>
+				</AppBar>
+			</header>
+
       <Container maxWidth="sm">
 
       	<div style={{ position: "relative", marginTop: "15%", marginLeft: "15%" }}>
@@ -228,6 +281,7 @@ export default function Login(){
       </Container>
 
       <Snackbar
+      	ref={snackRef} 
         anchorOrigin={ snackbarState }
         key={`${snackbarState.vertical},${snackbarState.horizontal}`}
         open={snackbarState.open}

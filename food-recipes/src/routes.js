@@ -3,7 +3,7 @@ import { BrowserRouter, Route, Switch, Redirect } from 'react-router-dom';
 
 import { authenticated } from './auth';
 import Login from './login';
-import Header from './header';
+import Recipes from './recipes';
 
 const PrivateRoute = ({ component : Component, ...rest }) => (
 
@@ -23,13 +23,13 @@ const PrivateRoute = ({ component : Component, ...rest }) => (
 
 const Routes = () => (
 
-    <BrowserRouter>
-    	<Header />   
+    <BrowserRouter> 
         <Switch>
             <Route exact path="/">
-                <Redirect to="/login" />
+                <Redirect to="/recipes" />
             </Route>
             <Route path="/login" component={Login} />
+            <PrivateRoute path="/recipes" component={Recipes} />
         </Switch>
     </BrowserRouter>
 );

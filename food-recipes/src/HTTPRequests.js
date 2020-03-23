@@ -8,12 +8,7 @@ class HttpRequest{
     async APIGetRequest(path, auth){
 
         // If it is a private route...
-        let reqHeaders = auth ? {
-            'Authorization' : `${auth}`,
-            'access-control-allow-origin' : '*'
-        } : {
-            'access-control-allow-origin' : '*'
-        };
+        let reqHeaders = auth ? { 'Authorization' : ` Token ${auth}` } : {};
 
         let url = this.baseURL + path;
 
@@ -33,12 +28,10 @@ class HttpRequest{
 
         // If it is a private route...
         let reqHeaders = auth ? {
-            'Authorization' : `${auth}`,
-            'Content-Type': 'application/json',
-            'access-control-allow-origin' : '*'
+            'Authorization' : `Token ${auth}`,
+            'Content-Type': 'application/json'
         } : {
-            'Content-Type': 'application/json',
-            'access-control-allow-origin' : '*'
+            'Content-Type': 'application/json'
         };
 
         let url = this.baseURL + path;
@@ -56,18 +49,13 @@ class HttpRequest{
         }
     }
 
-    LoginAuth(reqBody){
-
-        let reqHeaders = {
-            'Content-Type': 'application/json',
-            'access-control-allow-origin' : '*'
-        };
+    loginAuth(reqBody){
 
         try{
             
             return fetch( this.loginURL, {
                 method : 'POST',
-                headers :reqHeaders,
+                headers : { 'Content-Type' : 'application/json' },
                 body : JSON.stringify(reqBody)
             });
 
