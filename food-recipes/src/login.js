@@ -1,5 +1,5 @@
 import HttpRequest from './HTTPRequests';
-import { saveAuth } from './auth';
+import { saveAuth } from './storage';
 
 import React, { useState, useRef } from 'react'
 import { useHistory } from 'react-router-dom';
@@ -187,9 +187,9 @@ export default function Login(){
 				</AppBar>
 			</header>
 
-      <Container maxWidth="sm">
+      <Container maxWidth="sm" style={{ textAlign : 'center' }}>
 
-      	<div style={{ position: "relative", marginTop: "15%", marginLeft: "15%" }}>
+      	<div style={{ position: "relative", marginTop: "15%" }}>
       		<Typography variant="h5" gutterBottom>
 		        Sign in Your Account for Delights
 		      </Typography>

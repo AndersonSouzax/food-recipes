@@ -1,9 +1,10 @@
 import React from 'react';
 import { BrowserRouter, Route, Switch, Redirect } from 'react-router-dom';
 
-import { authenticated } from './auth';
+import { authenticated } from './storage';
 import Login from './login';
 import Recipes from './recipes';
+import Recipe from './single-recipe';
 
 const PrivateRoute = ({ component : Component, ...rest }) => (
 
@@ -30,6 +31,7 @@ const Routes = () => (
             </Route>
             <Route path="/login" component={Login} />
             <PrivateRoute path="/recipes" component={Recipes} />
+            <PrivateRoute path="/single-recipe" component={Recipe} />
         </Switch>
     </BrowserRouter>
 );

@@ -9,7 +9,6 @@ import CardMedia from '@material-ui/core/CardMedia';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
-import Paper from '@material-ui/core/Paper';
 import Snackbar from '@material-ui/core/Snackbar';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
@@ -17,8 +16,9 @@ import Avatar from '@material-ui/core/Avatar';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import { blue } from '@material-ui/core/colors';
 import CssBaseline from '@material-ui/core/CssBaseline';
+import { Route } from 'react-router-dom';
 
-import { authenticated } from './auth';
+import { authenticated } from './storage';
 import HttpRequest from './HTTPRequests';
 
 const useStyles = makeStyles(theme => ({
@@ -32,11 +32,6 @@ const useStyles = makeStyles(theme => ({
     flexGrow: 1,
     position: 'relative',
     marginTop: '4%'
-  },
-  paper: {
-    padding: theme.spacing(2),
-    textAlign: 'center',
-    color: theme.palette.text.secondary,
   },
   headerRoot: {
     flexGrow: 1,
@@ -75,7 +70,7 @@ export default function Recipes(){
 
 	const classes = useStyles();
 
-	const userInfo = JSON.parse(authenticated());
+	const userInfo = authenticated();
 
 	const snackRef = useRef(null);
 
@@ -91,20 +86,6 @@ export default function Recipes(){
 	const [loading, setLoading] = useState(false);
 
 	const [myRecsLoading, setMyRecsLoading] = useState(false);
-
-	const handleButtonClick = () => { 
-
-		if(!loading){
-
-			setLoading(true);
-
-			let time = setTimeout(() => {
-
-					setLoading(false);
-
-			},2000);
-		}
-	};
 
   const handleClose = () => {
       setsnackbarState({ ...snackbarState, open: false });
@@ -263,7 +244,16 @@ export default function Recipes(){
 
 				    	</div>
 
-				     	<Button color="inherit">Create a Recipe</Button>
+			        <Route render={ ({ history }) => (
+			        	<>
+			            <Button
+			            		color="inherit"
+			                aria-label="create a recipe"
+			                onClick={ () => history.push('/single-recipe') }>
+										Create a Recipe
+			            </Button>
+						    </>
+		          )}/>
 
 		          <Typography variant="h6" noWrap className={classes.userName}>
 		            { ( userInfo.name ? userInfo.name : "User").toUpperCase() }
