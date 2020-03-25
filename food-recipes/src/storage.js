@@ -18,3 +18,7 @@ export const saveRecipe = (recipe) => {
 export const getRecipe = () => {
 	return JSON.parse(localStorage.getItem('recipe'));
 };
+
+export const deleteRecipe = () => {
+	localStorage.removeItem('recipe');
+};

@@ -5,7 +5,7 @@ class HttpRequest{
         this.loginURL = process.env.REACT_APP_LOGIN_URL;
     }
 
-    async APIGetRequest(path, auth){
+    APIGetRequest(path, auth){
 
         // If it is a private route...
         let reqHeaders = auth ? { 'Authorization' : ` Token ${auth}` } : {};
@@ -24,7 +24,7 @@ class HttpRequest{
         }
     }
 
-    APIPostRequest(path, auth, reqBody){
+    APIMultiRequest(path, auth, method, reqBody){
 
         // If it is a private route...
         let reqHeaders = auth ? {
@@ -39,7 +39,7 @@ class HttpRequest{
         try{
             
             return fetch( url, {
-                method : 'POST',
+                method : method,
                 headers :reqHeaders,
                 body : JSON.stringify(reqBody)
             });

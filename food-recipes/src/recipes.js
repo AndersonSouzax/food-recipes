@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useHistory } from 'react-router-dom';
 import { makeStyles } from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
 import CardActionArea from '@material-ui/core/CardActionArea';
@@ -18,8 +19,10 @@ import { blue } from '@material-ui/core/colors';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { Route } from 'react-router-dom';
 
-import { authenticated } from './storage';
+import { authenticated, saveRecipe, deleteRecipe } from './storage';
 import HttpRequest from './HTTPRequests';
+
+import yakisoba from './yakisoba.jpg';
 
 const useStyles = makeStyles(theme => ({
 	card: {
@@ -69,6 +72,8 @@ const useStyles = makeStyles(theme => ({
 export default function Recipes(){
 
 	const classes = useStyles();
+
+  const history = useHistory();
 
 	const userInfo = authenticated();
 
@@ -151,7 +156,7 @@ export default function Recipes(){
 
 	};
 
-	const handleLoadAll = (e) =>{
+	const handleLoadAll = (e) => {
 
 		e.preventDefault();
 
@@ -164,6 +169,16 @@ export default function Recipes(){
 		}
 
 	};
+
+	const handleDoubleClick = recipe => {
+			saveRecipe(recipe);
+			history.push("/single-recipe");
+	};
+
+	const handleCreate = () => {
+			deleteRecipe();
+			history.push("/single-recipe");
+	}	
 
 	function loadMyRecipes(){
 
@@ -244,16 +259,13 @@ export default function Recipes(){
 
 				    	</div>
 
-			        <Route render={ ({ history }) => (
-			        	<>
 			            <Button
-			            		color="inherit"
-			                aria-label="create a recipe"
-			                onClick={ () => history.push('/single-recipe') }>
+			            	color="inherit"
+			              aria-label="create a recipe"
+			              onClick={ handleCreate }>
 										Create a Recipe
 			            </Button>
-						    </>
-		          )}/>
+
 
 		          <Typography variant="h6" noWrap className={classes.userName}>
 		            { ( userInfo.name ? userInfo.name : "User").toUpperCase() }
@@ -283,13 +295,13 @@ export default function Recipes(){
 
 				        <Grid item xs={12} sm={3} lg={4} key={recipe.id}>
 
-		              <Card className={classes.card}>
+		              <Card className={classes.card} onDoubleClick={ e => handleDoubleClick(recipe) }>
 
 							      <CardActionArea>
 
 							        <CardMedia
 							          className={classes.media}
-							          image="https://s2.glbimg.com/GFbmbPkXFfro8wNptTFTYDd5LKo=/0x0:1500x1004/984x0/smart/filters:strip_icc()/s.glbimg.com/po/rc/media/2012/06/13/17/21/10/964/chinawok_yakissobahome_02.jpg"
+							          image={recipe.category.image || yakisoba }
 							          title={recipe.title}
 							        />
 							        <CardContent>
