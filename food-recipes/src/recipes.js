@@ -17,10 +17,10 @@ import Avatar from '@material-ui/core/Avatar';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import { blue } from '@material-ui/core/colors';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import { Route } from 'react-router-dom';
 
 import { authenticated, saveRecipe, deleteRecipe } from './storage';
 import HttpRequest from './HTTPRequests';
+import Logout from './logout';
 
 import yakisoba from './yakisoba.jpg';
 
@@ -273,7 +273,7 @@ export default function Recipes(){
 
 				     	<Avatar alt={userInfo.name} src={userInfo.image} className={classes.userImage}/>
 
-				      <Button color="inherit">Logout</Button>
+				      <Logout />
 
 					  </Toolbar>
 					</AppBar>

@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Route } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 
 import { makeStyles } from '@material-ui/core/styles';
 
 import Card from '@material-ui/core/Card';
-import CardActionArea from '@material-ui/core/CardActionArea';
-import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
 import CardMedia from '@material-ui/core/CardMedia';
 import Button from '@material-ui/core/Button';
@@ -13,25 +11,27 @@ import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
-import IconButton from '@material-ui/core/IconButton';
-import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Snackbar from '@material-ui/core/Snackbar';
 import Container from '@material-ui/core/Container';
 import Avatar from '@material-ui/core/Avatar';
-import Paper from '@material-ui/core/Paper';
 import Grid from '@material-ui/core/Grid';
 import Select from '@material-ui/core/Select';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import { blue } from '@material-ui/core/colors';
+
+import IconButton from '@material-ui/core/IconButton';
+import ArrowBackIcon from '@material-ui/icons/ArrowBack';
+import DeleteIcon from '@material-ui/icons/Delete';
 import SaveIcon from '@material-ui/icons/Save';
 
 import { authenticated, getRecipe } from './storage';
 import HttpRequest from './HTTPRequests';
 import './css/general.css';
 import yakisoba from './yakisoba.jpg';
+import Logout from './logout';
 
 const useStyles = makeStyles(theme => ({
 	infoGrid : {
@@ -91,6 +91,10 @@ const useStyles = makeStyles(theme => ({
 	media: {
 		height: 140,
   },
+  deleteButton: {
+  	marginTop : '6%',
+  	marginBottom: '5%',
+  }
 }));
 
 export default function Recipe(){
@@ -99,7 +103,13 @@ export default function Recipe(){
 
 	const userInfo = authenticated();
 
+	const history = useHistory();
+
 	const [recipe, setRecipe] = useState(getRecipe() || {});
+
+	const inter = getRecipe();
+
+	const imageUrl = inter && inter.category ? inter.category.image : null;
 
 	const [category, setCategory] = useState( 
 		recipe && recipe.category  ? 
@@ -109,11 +119,9 @@ export default function Recipe(){
 			''
 	);
 
-	const snackRef = useRef(null);
+	const selectRef = useRef(null);
 
 	const [loading, setLoading] = useState(false);
-
-	const [success, setSuccess] = useState(false);
 
 	const viewing = recipe 
  				&& recipe.user 
@@ -136,6 +144,14 @@ export default function Recipe(){
 
  	useEffect(() => {
 
+	const userInfo = authenticated();
+
+	const recipe = getRecipe();
+
+	const viewing = recipe 
+ 				&& recipe.user 
+ 				&& recipe.user.id !== userInfo.id;
+
  		if(viewing){ return; }
 
 		HttpRequest
@@ -148,7 +164,7 @@ export default function Recipe(){
 
 				}else{
 
-					let message = 'error fetching categories from server [Status] ' + response.statusText;
+					let message = `error fetching categories from server [Status] ${response.statusText}`;
 
 					setsnackbarState({ ...snackbarState, open: true, message : message });
 
@@ -166,7 +182,7 @@ export default function Recipe(){
 			})
 			.catch((error) => {
 
-				let message = 'Exception fetching USER recipes from server [Error]' + error;
+				let message = `Exception fetching categories from server [Error] ${error}`;
 
 				setsnackbarState({ ...snackbarState, open: true, message : message });
 
@@ -175,7 +191,7 @@ export default function Recipe(){
 	}, []);
 
 	useEffect(() => {
-		setRecipe({ ...recipe, category : category });
+		setRecipe(recipe => { recipe.category = category; return recipe; });
 	},[category]);
 
 	const handleClose = () => {
@@ -183,11 +199,15 @@ export default function Recipe(){
   };
 
   const handleChange = prop => event => {
-    setRecipe({ ...recipe, [prop]: event.target.value });
+    setRecipe({ ...recipe, [prop]: event.target.value || '' });
   };
 
   const handleCategoryChange = event => {
     setCategory(event.target.value);
+  };
+
+  const goBack = () => {
+  	history.goBack();
   };
 
   // @type : 0 = save, 1 = update, 2  = delete
@@ -195,9 +215,26 @@ export default function Recipe(){
 
   	if(loading){ return; }
 
+  	setLoading(true);
+
   	const method = requests[type];
-  	const url = method === 'POST' ? 'recipe' : 'recipe/' + recipe.id
-  	const bodyR = method !== 'DELETE' ? recipe : null;
+  	const url = method === 'POST' ? 'recipe/' : `recipe/${recipe.id}/`
+  	const bodyR = method !== 'DELETE' ? Object.assign( {}, recipe) : null;
+  	const operation = method !== 'DELETE' ? 
+  		( method === 'POST' ? 'creating' : 'updating') 
+  		: 'deleting';
+
+	/* 
+		title* : String
+	  description*: String
+	  category*: ID
+	  user*: ID
+ 		*campo obrigatório 
+ 	*/
+
+  	if(bodyR){
+  		bodyR.user = userInfo.id;
+  	}
 
   	HttpRequest
 			.APIMultiRequest(url, userInfo.token, method, bodyR)
@@ -207,11 +244,11 @@ export default function Recipe(){
 
 				if(response.ok){
 
-					return response.json();
+					return true;
 
 				}else{
 
-					let message = 'error fetching categories from server [Status] ' + response.statusText;
+					let message = `error ${operation} recipe on the server [error] ${response.status}`;
 
 					setsnackbarState({ ...snackbarState, open: true, message : message });
 
@@ -221,9 +258,8 @@ export default function Recipe(){
 			.then((data) => {
 
 				if(data){
-
-					setCategories(data);
-
+					setsnackbarState({ ...snackbarState, open: true, message : `Success ${operation} recipe`  });
+					history.push("/recipes");
 				}
 
 			})
@@ -231,7 +267,7 @@ export default function Recipe(){
 
 				setLoading(false);
 
-				let message = 'Exception fetching USER recipes from server [Error]' + error;
+				let message = `Exception raised while ${operation} on the server [error] ${error}`;
 
 				setsnackbarState({ ...snackbarState, open: true, message : message });
 			});
@@ -247,21 +283,17 @@ export default function Recipe(){
 			  <AppBar position="static" className="general-color" boxshadow={3}>
 				  <Toolbar>
 
-	        <Route render={ ({ history }) => (
-	        	<>
-	            <IconButton
-	            		className={classes.backIcon}
-	            		edge="start"
-	                aria-label="go back"
-	                onClick={ () => history.goBack() }>
-	            	<ArrowBackIcon />
-	            </IconButton>
+          <IconButton
+          		className={classes.backIcon}
+          		edge="start"
+              aria-label="go back"
+              onClick={ goBack }>
+          	<ArrowBackIcon />
+          </IconButton>
 
-		          <Typography variant="h6" className={classes.title}>
-					      Go Back
-					    </Typography>
-				    </>
-          )}/>
+          <Typography variant="h6" className={classes.title}>
+			      Go Back
+			    </Typography>
 
           <Typography variant="h6" noWrap className={classes.userName}>
             { ( userInfo.name ? userInfo.name : "User").toUpperCase() }
@@ -269,7 +301,7 @@ export default function Recipe(){
 
 		     	<Avatar alt={userInfo.name} src={userInfo.image} className={classes.userImage}/>
 
-					<Button color="inherit">Logout</Button>
+					<Logout />
 
 				  </Toolbar>
 				</AppBar>
@@ -316,7 +348,7 @@ export default function Recipe(){
 		        	<Grid item xs={12} md={12} lg={12}>
 				        <CardMedia
 				          className={classes.media}
-				          image={recipe.category.image || yakisoba }
+				          image={imageUrl || yakisoba }
 				          title={recipe.title}
 				        />
 		        	</Grid>
@@ -331,6 +363,7 @@ export default function Recipe(){
 							    <InputLabel id="simple-select-label">Recipe Category</InputLabel>
 
 							    <Select
+							    	ref={selectRef}
 							      labelId="simple-select-label"
 							      id="simple-select"
 							      value={category}
@@ -350,17 +383,17 @@ export default function Recipe(){
 
 						  	<Grid item xs={6} md={6} lg={6}>
 
-							  	<Typography variant="p" className={classes.textArea}>
+							  	<p className={classes.textArea}>
 						        Category : 
-						      </Typography>
+						      </p>
 						  			
 						  	</Grid>
 
 						  	<Grid item xs={6} md={6} lg={6}>
 
-							  	<Typography variant="p" className={classes.textArea}>
-						        { recipe.category ? recipe.category.name : 'No Category Information' }
-						      </Typography>
+							  	<p className={classes.textArea}>
+						        { recipe.category ? recipe.category.name : "No Category Information" }
+						      </p>
 
 						  	</Grid>
 
@@ -393,9 +426,9 @@ export default function Recipe(){
 
 								 :
 
-							    <Typography variant="p" className={classes.textArea}>
+							    <p className={classes.textArea}>
 							      { recipe.description }
-							    </Typography>
+							    </p>
 							}
 		        </Grid>
 		        
@@ -415,6 +448,7 @@ export default function Recipe(){
 							      		color="inherit"
 							      		variant="contained"
 							      		className={classes.button}
+							      		onDoubleClick={e => handleRecipe(editing ? 1 : 0) }
 							      		startIcon={<SaveIcon />}>
 							      		Save
 							      	</Button>
@@ -434,10 +468,24 @@ export default function Recipe(){
 
       	</Card>
 
+	      {
+
+	      	editing && 
+
+			      <Button
+			        variant="contained"
+			        color="default"
+			        onDoubleClick={e => handleRecipe(2)}
+			        className={classes.deleteButton}
+			        startIcon={<DeleteIcon />}
+			      >        
+			     Delete Recipe
+		      </Button>	
+	      }
+
       </Container>
 
 			<Snackbar
-      	ref={snackRef} 
         anchorOrigin={ snackbarState }
         key={`${snackbarState.vertical},${snackbarState.horizontal}`}
         open={snackbarState.open}
