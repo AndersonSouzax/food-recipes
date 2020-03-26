@@ -10,23 +10,23 @@
 
 ## Login
 
-	The page responsible for users authentication. The user must enter with its email and password to have access to the recipes portal. The path to the page is: **/login**
+	The page responsible for users authentication. The user must enter with its email and password to have access to the recipes portal. The path to the page is: __/login__
 
 ## Recipes Listing
 
 	After log in to the application, the recipes listing is displayed.
 	The default list is a "general" recipes list, i.e, recipes created by other users.
-	This list is also accessible by clicking **RECIPES** button on the page header.
+	This list is also accessible by clicking __RECIPES__ button on the page header.
 
 ### Page Header
 
-	The header has 4 buttons, respectively: **RECIPES**, **MY RECIPES**, **CREATE A RECIPE** and **LOGOUT**. With the respective actions performed:
+	The header has 4 buttons, respectively: __RECIPES__, __MY RECIPES__, __CREATE A RECIPE__ and __LOGOUT__. With the respective actions performed:
 
 	* List recipes
 
 		List the general recipes from API
 
-	* List **MY** recipes
+	* List __MY__ recipes
 
 		List the actions owned by the user
 
