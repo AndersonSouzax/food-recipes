@@ -191,7 +191,7 @@ export default function Login(){
 
       	<div style={{ position: "relative", marginTop: "15%" }}>
       		<Typography variant="h5" gutterBottom>
-		        Sign in Your Account for Delights
+		        Login in Your Account for Delights
 		      </Typography>
       	</div>
 
