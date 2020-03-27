@@ -35,7 +35,7 @@ Log out the application and return to login page
 
 ## Recipes Listing
 
-After log in to the application, the recipes listing is displayed.
+After log in to the application, the recipes list is displayed.
 The default list is a "general" recipes list, i.e, recipes created by other users.
 This list is also accessible by clicking __RECIPES__ button on the page header.
 
@@ -51,13 +51,19 @@ Double clicking on any of the recipes, its details are presented, and it's possi
 
 #### Saving Updates
 
-After making (or not) any updates to the recipe, save the modifications double clickig in **"Save"** button right below the form.
+After making (or not) any updates to the recipe, save the modifications by double clickig in **"Save"** button right below the form.
 
 #### Deleting Recipe
 
 You can even delete **YOUR** recipe by double clicking the **"DELETE RECIPE"** button located close to the page footer.
 
 **BE CAREFUL**. Once deleted, the recipe cannot be recovered by the application.
+
+## Creating a Recipe
+
+Clicking on **"CREATE A RECIPE"** button, it's possible to create a new recipe. 
+Name, recipe's category and desciption informations are required to create a recipe.
+The recipe will be dsplayed next time user's recipes are fetched.
 
 ## Logout
 
