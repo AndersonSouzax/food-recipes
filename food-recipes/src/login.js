@@ -1,12 +1,11 @@
 import HttpRequest from './HTTPRequests';
 import { saveAuth } from './storage';
 
-import React, { useState, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useHistory } from 'react-router-dom';
 
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
-import { makeStyles } from '@material-ui/core/styles';
 import Snackbar from '@material-ui/core/Snackbar';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Container from '@material-ui/core/Container';
@@ -18,66 +17,17 @@ import TextField from '@material-ui/core/TextField';
 import IconButton from '@material-ui/core/IconButton';
 import Grid from '@material-ui/core/Grid';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import { green, blue } from '@material-ui/core/colors';
 import Button from '@material-ui/core/Button';
 import CheckIcon from '@material-ui/icons/Check';
 
-import clsx from 'clsx';
 import './css/general.css';
-
-const useStyles = makeStyles(theme => ({
-  headerRoot: {
-    flexGrow: 1,
-  },
-  title: {
-    flexGrow: 1,
-  },
-  margin: {
-    marginRight: theme.spacing(1),
-    marginTop: theme.spacing(1),
-    marginBottom: theme.spacing(1),
-    marginLeft: '16%'
-  },
-  textField: {
-    width: '25ch',
-  },
-  iconButton: {
-  	color: 'black',
-  },
-	progressRoot: {
-    display: 'flex',
-    alignItems: 'center',
-    marginTop: '30px',
-    position: 'relative',
-    marginLeft: '30%'
-  },
-  wrapper: {
-    margin: theme.spacing(1),
-    position: 'relative',
-  },
-  buttonSuccess: {
-    backgroundColor: green[500],
-    '&:hover': {
-      backgroundColor: green[700],
-    },
-  },
-  buttonProgress: {
-    color: blue[500],
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    marginTop: -12,
-    marginLeft: -12,
-  }
-}));
+import { loginClasses } from './styles';
 
 export default function Login(){
 
   const history = useHistory();
 
-	const classes = useStyles();
-
-	const snackRef = useRef(null);
+	const classes = loginClasses();
 
   const[login, setLoginInformations] = useState({ email : '', password : '' });
 
@@ -88,13 +38,25 @@ export default function Login(){
       message : ''
   });
 
-	const [loading, setLoading] = useState(false);
-	const [success, setSuccess] = useState(false);
+	const [loading, setLoading] = useState({ isLoading : false, fail : '' });
 
-	const buttonClassname = clsx({
-  	[classes.buttonSuccess]: success,
-  	'general-color' : true
-	});
+  useEffect(() => {
+
+    if(loading.isLoading){
+
+      setsnackbarState({ ...snackbarState, open: false });
+
+    }else{
+
+      if(loading.fail){
+
+        setsnackbarState({...snackbarState, open : true, message : loading.fail });  
+
+      }
+
+    }
+
+  }, [loading]);
 
   const handleChange = prop => event => {
     setLoginInformations({ ...login, [prop]: event.target.value });
@@ -112,68 +74,46 @@ export default function Login(){
       setsnackbarState({ ...snackbarState, open: false });
   };
 
-  const handleButtonClick = () => {
+  const handleButtonClick = async () => {
 
-    if (!loading) {
+    if (!loading.isLoading) {
 
-      setSuccess(false);
-      setLoading(true);
+      try{
 
-      setsnackbarState({ ...snackbarState, open: false });
+        setLoading({ fail : '' , isLoading : true });
 
-     HttpRequest.loginAuth({ 
-            username : login.email, 
-            password : login.password 
-        })
-	    .then((response) => {
+        const response = await HttpRequest.loginAuth({ 
+          username : login.email, 
+          password : login.password 
+        });
 
-	        setLoading(false);
+        if(response.ok){
 
-	        if (!response.ok) {
+          let user = await response.json();
 
-	            let message = 'Login error! Invalid credentials sent';
+          saveAuth(user);
 
-	            setsnackbarState({ ...snackbarState, open: true, message : message });
+          history.push("/recipes");
 
-	            return null;
-	        }
+        }else{
 
-	        return response.json();
+          setLoading({ isLoading : false, 
+            fail : 'Login Error, check your email and password'});
+        }
 
-	    })
-	    .then((myUser) => {
-	       
-	        if(myUser){
+      }catch(e){
+        
+        setLoading({ isLoading : false, 
+         fail : 'There was a problem connecting to server: ' + e });
 
-							setSuccess(true);
-
-	            saveAuth(myUser);
-
-	            history.push("/recipes");
-
-	        }else{
-
-	            let message = 'Login error! Invalid credentials sent';
-
-	            setsnackbarState({ ...snackbarState, open: true, message : message });
-	        }
-	    })
-	    .catch((error) => {
-	        
-	        setLoading(false);
-
-	        let message = 'There has been a problem when connecting to server: ' + error;
-
-	        setsnackbarState({ ...snackbarState, open: true, message : message });
-
-	    });
+      }
     }
   };
 
 
 	return (
 
-		<React.Fragment>
+		<>
 
       <CssBaseline />
       
@@ -263,14 +203,13 @@ export default function Login(){
 			        <Button
 			          variant="contained"
 			          color="secondary"
-			          className={buttonClassname}
-			          disabled={ loading || !login.email || !login.password }
+                className="general-color"
+			          disabled={ loading.isLoading || !login.email || !login.password }
 			          onClick={handleButtonClick}>
-			          {success && <CheckIcon />}
 			          Confirm
 			        </Button>
 
-			        {loading && <CircularProgress size={24} className={classes.buttonProgress} />}
+			        {loading.isLoading && <CircularProgress size={24} className={classes.buttonProgress} />}
 
 			      </div>
 
@@ -281,13 +220,12 @@ export default function Login(){
       </Container>
 
       <Snackbar
-      	ref={snackRef} 
         anchorOrigin={ snackbarState }
         key={`${snackbarState.vertical},${snackbarState.horizontal}`}
         open={snackbarState.open}
         onClose={handleClose}
         message={snackbarState.message}/>
 
-    </React.Fragment>
+    </>
 	);
 }

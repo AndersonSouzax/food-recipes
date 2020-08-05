@@ -50,19 +50,13 @@ class HttpRequest{
     }
 
     loginAuth(reqBody){
-
-        try{
             
-            return fetch( this.loginURL, {
-                method : 'POST',
-                headers : { 'Content-Type' : 'application/json' },
-                body : JSON.stringify(reqBody)
-            });
+      return fetch( this.loginURL, {
+          method : 'POST',
+          headers : { 'Content-Type' : 'application/json' },
+          body : JSON.stringify(reqBody)
+      });
 
-        }catch(e){
-            throw e;
-        }
     }    
 }
-
-module.exports =  new HttpRequest();
+export default new HttpRequest();
