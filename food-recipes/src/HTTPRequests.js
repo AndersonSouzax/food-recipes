@@ -18,37 +18,30 @@ class HttpRequest{
 
     APIMultiRequest(path, auth, method, reqBody){
 
-        // If it is a private route...
-        let reqHeaders = auth ? {
-            'Authorization' : `Token ${auth}`,
-            'Content-Type': 'application/json'
-        } : {
-            'Content-Type': 'application/json'
-        };
+      // If it is a private route...
+      let reqHeaders = auth ? {
+        'Authorization' : `Token ${auth}`,
+        'Content-Type': 'application/json'
+      }:{
+        'Content-Type': 'application/json'
+      };
 
-        let url = this.baseURL + path;
-
-        try{
-            
-            return fetch( url, {
-                method : method,
-                headers :reqHeaders,
-                body : JSON.stringify(reqBody)
-            });
-
-        }catch(e){
-            throw e;
-        }
+      let url = this.baseURL + path;
+          
+      return fetch(url, {
+          method : method,
+          headers :reqHeaders,
+          body : JSON.stringify(reqBody)
+      });
     }
 
     loginAuth(reqBody){
-            
+       
       return fetch( this.loginURL, {
           method : 'POST',
           headers : { 'Content-Type' : 'application/json' },
           body : JSON.stringify(reqBody)
       });
-
     }
 }
 export default new HttpRequest();
