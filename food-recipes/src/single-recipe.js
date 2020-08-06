@@ -1,7 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
-
-import { makeStyles } from '@material-ui/core/styles';
 
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
@@ -20,8 +18,6 @@ import Select from '@material-ui/core/Select';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import { blue } from '@material-ui/core/colors';
-
 import IconButton from '@material-ui/core/IconButton';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -29,87 +25,23 @@ import SaveIcon from '@material-ui/icons/Save';
 
 import { authenticated, getRecipe } from './storage';
 import HttpRequest from './HTTPRequests';
-import './css/general.css';
-import yakisoba from './yakisoba.jpg';
 import Logout from './logout';
 
-const useStyles = makeStyles(theme => ({
-	infoGrid : {
-		flexGrow: 1,
-		margin: theme.spacing(2),
-		textAlign: 'center',
-		minWidth: 200,
-		maxWidth: 700,
-	},
-  headerRoot: {
-    flexGrow: 1,
-  },
-  title: {
-    flexGrow: 1,
-  },
-  textField: {
-    width: '45ch',
-  },
-  textArea:{
-  	fontSize: 14,
-  	fontFamily : 'roboto'
-  },
-  backIcon: {
-  	color: '#ffffff',
-  },
-  userName: {
-  	position: 'relative',
-  	marginLeft: '2%',
-  	marginRight: '5px'
-  },
-  buttonProgress: {
-    color: blue[500],
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    marginTop: -12,
-    marginLeft: -12,
-  },
-  progressRoot: {
-    display: 'flex',
-    alignItems: 'center'
-  },
-  wrapper: {
-    margin: theme.spacing(1),
-    position: 'relative',
-    left: '37%'
-  },
-  button : {
-  	backgroundColor: '#ea1d2c',
-  	color: 'white',
-  	'&:hover': {
-      backgroundColor: '#ea1a1a',
-      borderColor: '#ea0f0f',
-      boxShadow: 'none',
-    }
-  },
-	media: {
-		height: 140,
-  },
-  deleteButton: {
-  	marginTop : '6%',
-  	marginBottom: '5%',
-  }
-}));
+import './css/general.css';
+import { singleRClasses } from './styles';
+
+import yakisoba from './yakisoba.jpg';
 
 export default function Recipe(){
 
-	const classes = useStyles();
-
+	const classes = singleRClasses();
 	const userInfo = authenticated();
-
 	const history = useHistory();
-
-	const [recipe, setRecipe] = useState(getRecipe() || {});
-
 	const inter = getRecipe();
 
 	const imageUrl = inter && inter.category ? inter.category.image : null;
+
+	const [recipe, setRecipe] = useState(inter || {});
 
 	const [category, setCategory] = useState( 
 		recipe && recipe.category  ? 
@@ -119,9 +51,7 @@ export default function Recipe(){
 			''
 	);
 
-	const selectRef = useRef(null);
-
-	const [loading, setLoading] = useState(false);
+	const [loading, setLoading] = useState({ isLoading : false, fail : '' });
 
 	const viewing = recipe 
  				&& recipe.user 
@@ -144,51 +74,60 @@ export default function Recipe(){
 
  	useEffect(() => {
 
-	const userInfo = authenticated();
+		const userInfo = authenticated();
+		const recipe = getRecipe();
 
-	const recipe = getRecipe();
-
-	const viewing = recipe 
- 				&& recipe.user 
- 				&& recipe.user.id !== userInfo.id;
+		const viewing = recipe 
+	 				&& recipe.user 
+	 				&& recipe.user.id !== userInfo.id;
 
  		if(viewing){ return; }
 
-		HttpRequest
-			.APIGetRequest('category', userInfo.token)
-			.then((response) =>	{
+ 		try{
 
-				if(response.ok){
+ 			const reponse = await HttpRequest.APIGetRequest('category', userInfo.token);
 
-					return response.json();
+ 			if(response.ok){
 
-				}else{
+ 				const data = await response.json();
 
-					let message = `error fetching categories from server [Status] ${response.statusText}`;
+ 				setCategories(data);
 
-					setsnackbarState({ ...snackbarState, open: true, message : message });
+ 			}else{
 
-				}
-
-			})
-			.then((data) => {
-
-				if(data){
-
-					setCategories(data);
-
-				}
-
-			})
-			.catch((error) => {
-
-				let message = `Exception fetching categories from server [Error] ${error}`;
+ 				let message = `error fetching categories [Status] ${response.statusText}`;
 
 				setsnackbarState({ ...snackbarState, open: true, message : message });
 
-			});
+ 			}
+
+ 		}catch(e){
+
+ 			let message = `Exception fetching categories: ${e}. Reload the page...`;
+
+			setsnackbarState({ ...snackbarState, open: true, message : message });
+ 		}
 
 	}, []);
+
+ 	useEffect(() => {
+
+ 		if(loading.isLoading){
+
+ 			setsnackbarState({ ...snackbarState, open: false });
+
+ 		}else{
+
+ 			if(loading.fail){
+
+ 				setsnackbarState({...snackbarState, 
+ 					open : true, 
+ 					message : loading.fail 
+ 				});
+
+ 			}
+ 		}
+ 	}, [loading]);
 
 	useEffect(() => {
 		setRecipe(recipe => { recipe.category = category; return recipe; });
@@ -211,71 +150,65 @@ export default function Recipe(){
   };
 
   // @type : 0 = save, 1 = update, 2  = delete
-  const handleRecipe = type => {
+  const handleRecipe = async (type) => {
 
-  	if(loading){ return; }
+  	if(loading.isLoading){ return; }
 
-  	setLoading(true);
+  	setLoading({  isLoading : true, fail : '' });
 
-  	const method = requests[type];
-  	const url = method === 'POST' ? 'recipe/' : `recipe/${recipe.id}/`
-  	const bodyR = method !== 'DELETE' ? Object.assign( {}, recipe) : null;
-  	const operation = method !== 'DELETE' ? 
-  		( method === 'POST' ? 'creating' : 'updating') 
-  		: 'deleting';
+  	try{
 
-	/* 
-		title* : String
-	  description*: String
-	  category*: ID
-	  user*: ID
- 		*campo obrigatório 
- 	*/
+	  	const method = requests[type];
+	  	const url = method === 'POST' ? 'recipe/' : `recipe/${recipe.id}/`
+	  	const bodyR = method !== 'DELETE' ? Object.assign( {}, recipe) : null;
+	  	const operation = method !== 'DELETE' ? 
+	  		( method === 'POST' ? 'creating' : 'updating') 
+	  		: 'deleting';
 
-  	if(bodyR){
-  		bodyR.user = userInfo.id;
+			/* 
+				title* : String
+		  	description*: String
+		  	category*: ID
+		  	user*: ID
+
+	 			*required
+	 		*/
+
+	  	if(bodyR){
+	  		bodyR.user = userInfo.id;
+	  	}
+
+	  	const response = HttpRequest.APIMultiRequest(url, 
+	  		userInfo.token, method, bodyR);
+
+	  	if(response.ok){
+
+	  		setLoading({ isLoading : false, fail : `Success ${operation} recipe` });
+
+				history.push("/recipes");
+
+	  	}else{
+
+	  		let message = `error ${operation} recipe on 
+	  			the server: ${response.status}`;
+
+				setLoading({ isLoading : false, fail : message });
+	  	}
+
+  	}catch(e){
+
+  		let message = `Exception raised while ${operation} 
+  			on the server: ${e}`;
+
+			setLoading({ isLoading : false, fail : message });
+
   	}
 
-  	HttpRequest
-			.APIMultiRequest(url, userInfo.token, method, bodyR)
-			.then((response) =>	{
-
-				setLoading(false);
-
-				if(response.ok){
-
-					return true;
-
-				}else{
-
-					let message = `error ${operation} recipe on the server [error] ${response.status}`;
-
-					setsnackbarState({ ...snackbarState, open: true, message : message });
-
-				}
-
-			})
-			.then((data) => {
-
-				if(data){
-					setsnackbarState({ ...snackbarState, open: true, message : `Success ${operation} recipe`  });
-					history.push("/recipes");
-				}
-
-			})
-			.catch((error) => {
-
-				setLoading(false);
-
-				let message = `Exception raised while ${operation} on the server [error] ${error}`;
-
-				setsnackbarState({ ...snackbarState, open: true, message : message });
-			});
   };
 
 	return (
 
-		<React.Fragment>
+		<>
       
       <CssBaseline />
       
@@ -363,7 +296,6 @@ export default function Recipe(){
 							    <InputLabel id="simple-select-label">Recipe Category</InputLabel>
 
 							    <Select
-							    	ref={selectRef}
 							      labelId="simple-select-label"
 							      id="simple-select"
 							      value={category}
@@ -453,7 +385,7 @@ export default function Recipe(){
 							      		Save
 							      	</Button>
 
-							        { loading && <CircularProgress size={24} className={classes.buttonProgress} /> }
+							        { loading.isLoading && <CircularProgress size={24} className={classes.buttonProgress} /> }
 
 							      </div>
 
@@ -492,7 +424,7 @@ export default function Recipe(){
         onClose={handleClose}
         message={snackbarState.message}/>
 
-		</React.Fragment>
+		</>
 	);
 
 }

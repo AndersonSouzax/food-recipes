@@ -4,17 +4,13 @@ import Button from '@material-ui/core/Button';
 
 import { deleteAuth } from './storage';
 
-
-
 export default function Logout(){
 
 	const history = useHistory();
 
 	const execute = () => {
-
 		deleteAuth();
 		history.push("/login");
-		
 	}
 
 	return (

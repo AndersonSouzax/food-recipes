@@ -7,21 +7,13 @@ class HttpRequest{
 
     APIGetRequest(path, auth){
 
-        // If it is a private route...
-        let reqHeaders = auth ? { 'Authorization' : ` Token ${auth}` } : {};
+      // If it is a private route...
+      let reqHeaders = auth ? { 'Authorization' : ` Token ${auth}` } : {};
 
-        let url = this.baseURL + path;
+      let url = this.baseURL + path;
 
-        try{
-            
-            return fetch(url,{
-                method : 'GET',
-                headers :reqHeaders
-            });
+      return fetch(url, { method : 'GET', headers :reqHeaders });
 
-        }catch(e){
-            throw e;
-        }
     }
 
     APIMultiRequest(path, auth, method, reqBody){
@@ -57,6 +49,6 @@ class HttpRequest{
           body : JSON.stringify(reqBody)
       });
 
-    }    
+    }
 }
 export default new HttpRequest();

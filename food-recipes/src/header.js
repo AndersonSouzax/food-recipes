@@ -1,36 +1,19 @@
-import React from 'react';     
+import React from 'react';
+
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
-import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Avatar from '@material-ui/core/Avatar';
 
 import { deleteAuth, authenticated } from './auth';
 
 import './css/general.css';
-
-const useStyles = makeStyles(theme => ({
-  headerRoot: {
-    flexGrow: 1,
-  },
-  title: {
-    flexGrow: 1,
-  },
-  userName: {
-  	position: 'relative',
-  	marginLeft: '2%',
-  	marginRight: '5px'
-  },
-  userImage:{
-  	position: 'relative',
-  	marginRight: '1%',
-  }
-}));
+import { headerClasses } from './styles';
 
 export default function Header(){
 
-	const classes = useStyles();
+	const classes = headerClasses();
 
 	const userPresent = JSON.parse(authenticated());
 
@@ -43,7 +26,7 @@ export default function Header(){
 			      Food Recipes
 			    </Typography>
 			     { 
-			     	userPresent ? 
+			     	userPresent && 
 			     		<>
 					     	<Button color="inherit">Recipes</Button>
 					     	<Button color="inherit">My Recipes</Button>
@@ -57,7 +40,6 @@ export default function Header(){
 
 					      <Button color="inherit">Logout</Button>
 			      	</>
-			      	: <></>
 			     }
 			  </Toolbar>
 			</AppBar>

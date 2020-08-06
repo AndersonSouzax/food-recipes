@@ -40,3 +40,73 @@ export const loginClasses = makeStyles(theme => ({
   },
   
 }));
+
+export const headerClasses = makeStyles(theme => ({
+  headerRoot: { lexGrow: 1 },
+  title: { flexGrow: 1 },
+  userName: {
+    position: 'relative',
+    marginLeft: '2%',
+    marginRight: '5px'
+  },
+  userImage:{
+    position: 'relative',
+    marginRight: '1%',
+  }
+}));
+
+export const singleRClasses = makeStyles(theme => ({
+  infoGrid : {
+    flexGrow: 1,
+    margin: theme.spacing(2),
+    textAlign: 'center',
+    minWidth: 200,
+    maxWidth: 700,
+  },
+  headerRoot: { flexGrow: 1 },
+  title: { flexGrow: 1 },
+  textField: { width: '45ch' },
+  textArea:{
+    fontSize: 14,
+    fontFamily : 'roboto'
+  },
+  backIcon: { color: '#ffffff' },
+  userName: {
+    position: 'relative',
+    marginLeft: '2%',
+    marginRight: '5px'
+  },
+  buttonProgress: {
+    color: blue[500],
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    marginTop: -12,
+    marginLeft: -12,
+  },
+  progressRoot: {
+    display: 'flex',
+    alignItems: 'center'
+  },
+  wrapper: {
+    margin: theme.spacing(1),
+    position: 'relative',
+    left: '37%'
+  },
+  button : {
+    backgroundColor: '#ea1d2c',
+    color: 'white',
+    '&:hover': {
+      backgroundColor: '#ea1a1a',
+      borderColor: '#ea0f0f',
+      boxShadow: 'none',
+    }
+  },
+  media: {
+    height: 140,
+  },
+  deleteButton: {
+    marginTop : '6%',
+    marginBottom: '5%',
+  }
+}));
