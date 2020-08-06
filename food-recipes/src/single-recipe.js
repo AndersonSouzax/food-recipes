@@ -178,7 +178,7 @@ export default function Recipe(){
 	  		bodyR.user = userInfo.id;
 	  	}
 
-	  	const response = HttpRequest.APIMultiRequest(url, 
+	  	const response = await HttpRequest.APIMultiRequest(url, 
 	  		userInfo.token, method, bodyR);
 
 	  	if(response.ok){
