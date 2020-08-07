@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
-import { makeStyles } from '@material-ui/core/styles';
+
 import Card from '@material-ui/core/Card';
 import CardActionArea from '@material-ui/core/CardActionArea';
 import Container from '@material-ui/core/Container';
@@ -15,7 +15,6 @@ import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Avatar from '@material-ui/core/Avatar';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import { blue } from '@material-ui/core/colors';
 import CssBaseline from '@material-ui/core/CssBaseline';
 
 import { authenticated, saveRecipe, deleteRecipe } from './storage';
@@ -24,60 +23,15 @@ import Logout from './logout';
 
 import yakisoba from './yakisoba.jpg';
 
-const useStyles = makeStyles(theme => ({
-	card: {
-		maxWidth: 345,
-	},
-	media: {
-		height: 140,
-  },
-  root: {
-    flexGrow: 1,
-    position: 'relative',
-    marginTop: '4%'
-  },
-  headerRoot: {
-    flexGrow: 1,
-  },
-  title: {
-    flexGrow: 1,
-  },
-  userName: {
-  	position: 'relative',
-  	marginLeft: '2%',
-  	marginRight: '5px'
-  },
-  userImage:{
-  	position: 'relative',
-  	marginRight: '1%',
-  },
-  buttonProgress: {
-    color: blue[500],
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    marginTop: -12,
-    marginLeft: -12,
-  },
-  progressRoot: {
-    display: 'flex',
-    alignItems: 'center'
-  },
-  wrapper: {
-    margin: theme.spacing(1),
-    position: 'relative',
-  }
-}));
+import { recipesStyles }  from './styles';
 
 export default function Recipes(){
 
-	const classes = useStyles();
+	const classes = recipesStyles();
 
   const history = useHistory();
 
 	const userInfo = authenticated();
-
-	const snackRef = useRef(null);
 
   const [snackbarState, setsnackbarState] = useState({
       open: false,
@@ -88,53 +42,72 @@ export default function Recipes(){
 
 	const [recipes, setRecipesState] = useState([]);
 
-	const [loading, setLoading] = useState(false);
+	const [loading, setLoading] = useState({ isLoading : false, fail : '' });
 
 	const [myRecsLoading, setMyRecsLoading] = useState(false);
+
+	useEffect(() => {
+
+ 		if(loading.isLoading){
+
+ 			setsnackbarState({ ...snackbarState, open: false });
+
+ 		}else{
+
+ 			if(loading.fail){
+
+ 				showMessage(loading.fail)
+
+ 			}
+ 		}
+ 	}, [loading]);
+
+	const showMessage = (message) => {
+
+		setsnackbarState({...snackbarState, 
+			open : true, 
+			message : message 
+		});
+
+	};
 
   const handleClose = () => {
       setsnackbarState({ ...snackbarState, open: false });
   };
 
-  function loadAllRecipes(){
+  const loadAllRecipes = async () => {
 
-  	HttpRequest
-			.APIGetRequest('recipe', userInfo.token)
-			.then((response) =>	{
+  	if(loading.isLoading){ return; }
 
-				setLoading(false);
+  	try {
 
-				if(response.ok){
+  		setLoading({ isLoading : true, fail : '' });
 
-					return response.json();
+  		const response = await HttpRequest.APIGetRequest('recipe', userInfo.token);
 
-				}else{
+  		if(response.ok){
 
-					let message = 'error fetching recipes from server [Status] ' + response.statusText;
+  			setLoading({ isLoading : false, fail : '' });
 
-					setsnackbarState({ ...snackbarState, open: true, message : message });
+  			const data = await response.json();
 
-				}
+  			setRecipesState(data);
 
-			})
-			.then((data) => {
+  		}else{
 
-				if(data){
+  			let message = 'error fetching recipes: ' + response.statusText;
 
-					setRecipesState(data);
+				setLoading({ isLoading : false, fail : message });
 
-				}
+  		}
 
-			})
-			.catch((error) => {
+  	}catch(e){
 
-				setLoading(false);
+  		let message = 'Exception fetching recipes from server: ' + e;
 
-				let message = 'Exception fetching recipes from server [Error]' + error;
+			setLoading({ isLoading : false, fail : message });
 
-				setsnackbarState({ ...snackbarState, open: true, message : message });
-
-			});
+  	}
   }
 
 	useEffect(() => {
@@ -160,9 +133,7 @@ export default function Recipes(){
 
 		e.preventDefault();
 
-		if(!loading){
-
-			setLoading(true);
+		if(!loading.isLoading){
 
 			loadAllRecipes();
 
@@ -180,45 +151,43 @@ export default function Recipes(){
 			history.push("/single-recipe");
 	}	
 
-	function loadMyRecipes(){
+	const loadMyRecipes = async () => {
 
-		HttpRequest
-			.APIGetRequest(`recipe?user=${userInfo.id}`, userInfo.token)
-			.then((response) =>	{
+		if(myRecsLoading){ return; }
 
-				setMyRecsLoading(false);
+		try{
 
-				if(response.ok){
+			setMyRecsLoading(true);
 
-					return response.json();
+			const response = await HttpRequest.APIGetRequest(
+				`recipe?user=${userInfo.id}`,
+				userInfo.token);
 
-				}else{
+			setMyRecsLoading(false);
 
-					let message = 'error fetching USER recipes from server [Status] ' + response.statusText;
+			if(response.ok){
 
-					setsnackbarState({ ...snackbarState, open: true, message : message });
+				const data = await response.json();
 
-				}
+				setRecipesState(data);
 
-			})
-			.then((data) => {
+			}else{
 
-				if(data){
+				let message = 'error fetching USER recipes: ' + response.statusText;
 
-					setRecipesState(data);
+				showMessage(message);
 
-				}
+			}
 
-			})
-			.catch((error) => {
+		}catch(e){
 
-				setMyRecsLoading(false);
+			setMyRecsLoading(false);
 
-				let message = 'Exception fetching USER recipes from server [Error]' + error;
+			let message = 'Exception fetching USER recipes from server [Error]' + e;
 
-				setsnackbarState({ ...snackbarState, open: true, message : message });
+			showMessage(message);
 
-			});
+		}
 	}
 
 	return (
@@ -241,7 +210,7 @@ export default function Recipes(){
 
 					      	<Button color="inherit" onClick={handleLoadAll}>Recipes</Button>
 
-					        { loading && <CircularProgress size={24} className={classes.buttonProgress} /> }
+					        { loading.isLoading && <CircularProgress size={24} className={classes.buttonProgress} /> }
 
 					      </div>
 
@@ -334,7 +303,6 @@ export default function Recipes(){
 				</Container>
 
 				<Snackbar
-	      	ref={snackRef} 
 	        anchorOrigin={ snackbarState }
 	        key={`${snackbarState.vertical},${snackbarState.horizontal}`}
 	        open={snackbarState.open}

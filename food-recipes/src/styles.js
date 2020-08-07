@@ -2,9 +2,13 @@ import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { green, blue } from '@material-ui/core/colors';
 
-export const loginClasses = makeStyles(theme => ({
+const headerAndTitle = {
   headerRoot : { flexGrow: 1 },
   title : { flexGrow: 1 },
+};
+
+export const loginClasses = makeStyles(theme => ({
+  ...headerAndTitle,
   margin : {
     marginRight: theme.spacing(1),
     marginTop: theme.spacing(1),
@@ -42,8 +46,7 @@ export const loginClasses = makeStyles(theme => ({
 }));
 
 export const headerClasses = makeStyles(theme => ({
-  headerRoot: { lexGrow: 1 },
-  title: { flexGrow: 1 },
+  ...headerAndTitle,
   userName: {
     position: 'relative',
     marginLeft: '2%',
@@ -63,8 +66,7 @@ export const singleRClasses = makeStyles(theme => ({
     minWidth: 200,
     maxWidth: 700,
   },
-  headerRoot: { flexGrow: 1 },
-  title: { flexGrow: 1 },
+  ...headerAndTitle,
   textField: { width: '45ch' },
   textArea:{
     fontSize: 14,
@@ -110,3 +112,41 @@ export const singleRClasses = makeStyles(theme => ({
     marginBottom: '5%',
   }
 }));
+
+
+export const recipesStyles = makeStyles(theme => ({
+  card: { maxWidth: 345 },
+  media: { height: 140 },
+  root: {
+    flexGrow: 1,
+    position: 'relative',
+    marginTop: '4%'
+  },
+  ...headerAndTitle,
+  userName: {
+    position: 'relative',
+    marginLeft: '2%',
+    marginRight: '5px'
+  },
+  userImage:{
+    position: 'relative',
+    marginRight: '1%',
+  },
+  buttonProgress: {
+    color: blue[500],
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    marginTop: -12,
+    marginLeft: -12,
+  },
+  progressRoot: {
+    display: 'flex',
+    alignItems: 'center'
+  },
+  wrapper: {
+    margin: theme.spacing(1),
+    position: 'relative',
+  }
+}));
+

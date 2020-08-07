@@ -15,7 +15,7 @@ export default function Header(){
 
 	const classes = headerClasses();
 
-	const userPresent = JSON.parse(authenticated());
+	const userPresent = authenticated();
 
 	return (
 

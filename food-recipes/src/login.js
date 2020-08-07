@@ -18,7 +18,6 @@ import IconButton from '@material-ui/core/IconButton';
 import Grid from '@material-ui/core/Grid';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Button from '@material-ui/core/Button';
-import CheckIcon from '@material-ui/icons/Check';
 
 import './css/general.css';
 import { loginClasses } from './styles';

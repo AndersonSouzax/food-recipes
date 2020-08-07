@@ -74,39 +74,45 @@ export default function Recipe(){
 
  	useEffect(() => {
 
-		const userInfo = authenticated();
-		const recipe = getRecipe();
+ 		async function inner(){
 
-		const viewing = recipe 
-	 				&& recipe.user 
-	 				&& recipe.user.id !== userInfo.id;
+			const userInfo = authenticated();
+			const recipe = getRecipe();
 
- 		if(viewing){ return; }
+			const viewing = recipe 
+		 				&& recipe.user 
+		 				&& recipe.user.id !== userInfo.id;
 
- 		try{
+	 		if(viewing){ return; }
 
- 			const reponse = await HttpRequest.APIGetRequest('category', userInfo.token);
+	 		try{
 
- 			if(response.ok){
+	 			const response = await HttpRequest.APIGetRequest('category', userInfo.token);
 
- 				const data = await response.json();
+	 			if(response.ok){
 
- 				setCategories(data);
+	 				const data = await response.json();
 
- 			}else{
+	 				setCategories(data);
 
- 				let message = `error fetching categories [Status] ${response.statusText}`;
+	 			}else{
+
+	 				let message = `error fetching categories [Status] ${response.statusText}`;
+
+					setsnackbarState({ ...snackbarState, open: true, message : message });
+
+	 			}
+
+	 		}catch(e){
+
+	 			let message = `Exception fetching categories: ${e}. Reload the page...`;
 
 				setsnackbarState({ ...snackbarState, open: true, message : message });
+	 		}
 
- 			}
-
- 		}catch(e){
-
- 			let message = `Exception fetching categories: ${e}. Reload the page...`;
-
-			setsnackbarState({ ...snackbarState, open: true, message : message });
  		}
+
+ 		inner();
 
 	}, []);
 
@@ -156,14 +162,16 @@ export default function Recipe(){
 
   	setLoading({  isLoading : true, fail : '' });
 
+  	const method = requests[type];
+  	const url = method === 'POST' ? 'recipe/' : `recipe/${recipe.id}/`
+  	const bodyR = method !== 'DELETE' ? Object.assign( {}, recipe) : null;
+  	const operation = method !== 'DELETE' ? 
+  		( method === 'POST' ? 'creating' : 'updating') 
+  		: 'deleting';
+
   	try{
 
-	  	const method = requests[type];
-	  	const url = method === 'POST' ? 'recipe/' : `recipe/${recipe.id}/`
-	  	const bodyR = method !== 'DELETE' ? Object.assign( {}, recipe) : null;
-	  	const operation = method !== 'DELETE' ? 
-	  		( method === 'POST' ? 'creating' : 'updating') 
-	  		: 'deleting';
+
 
 			/* 
 				title* : String
